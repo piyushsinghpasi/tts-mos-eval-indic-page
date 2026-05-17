@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://script.google.com https://script.googleusercontent.com; connect-src *; media-src *;">
 <title>TTS Naturalness Evaluation</title>
 <style>
   /* ── reset & base ── */
@@ -393,14 +394,45 @@ function emailToSeed(email) {
   return Math.abs(h);
 }
 
-// ── Apps Script calls ─────────────────────────────────────────────
 
-async function apiCall(params) {
-  const url = new URL(APPS_SCRIPT_URL);
-  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString());
-  return res.json();
+// ── Apps Script calls (JSONP to bypass CORS) ──────────────────
+
+function apiCall(params) {
+  return new Promise((resolve, reject) => {
+    const callbackName = "cb_" + Math.random().toString(36).slice(2);
+    const url = new URL(APPS_SCRIPT_URL);
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+    url.searchParams.set("callback", callbackName);
+
+    const script = document.createElement("script");
+    script.src = url.toString();
+    script.async = true;
+
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error("Request timed out — please try again"));
+    }, 20000);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[callbackName] = function(data) {
+      cleanup();
+      resolve(data);
+    };
+
+    script.onerror = (e) => {
+      cleanup();
+      reject(new Error("Failed to fetch"));
+    };
+
+    document.body.appendChild(script);
+  });
 }
+
 
 // ── Start / resume ───────────────────────────────────────────────
 
@@ -418,7 +450,7 @@ async function handleStart() {
   try {
     // 1. Load manifest
     if (!fullManifest.length) {
-      const mRes = await fetch(MANIFEST_URL);
+      const mRes = await fetch(MANIFEST_URL, { redirect: "follow" });
       fullManifest = await mRes.json();
     }
 
