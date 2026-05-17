@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -462,11 +463,17 @@ async function handleStart() {
         hideLoading();
         return setLoginError("Name doesn't match our records for this email and language. Please check and try again.");
       }
-      // Resume
-      userName     = userData.name;
-      userEmail    = email;
-      userLang     = lang;
-      assignedClips = userData.clips;
+      // Resume — reconstruct full clip objects from stored IDs + manifest
+      userName  = userData.name;
+      userEmail = email;
+      userLang  = lang;
+
+      const clipIds = typeof userData.clips === "string"
+        ? userData.clips.split(",")
+        : userData.clips; // comma-separated IDs
+      const manifestMap = {};
+      fullManifest.forEach(c => manifestMap[c.id] = c);
+      assignedClips = clipIds.map(id => manifestMap[id]).filter(Boolean);
 
       // Load existing ratings
       const rData = await apiCall({ action:"getRatings", email });
@@ -496,13 +503,14 @@ async function handleStart() {
       const seed    = emailToSeed(email + lang);
       const ordered = seededShuffle(sampled, seed);
 
-      // Save user
+      // Save user — only send clip IDs to keep URL short
+      const clipIds = ordered.map(c => c.id).join(",");
       const createRes = await apiCall({
         action:   "createUser",
         name,
         email,
         language: lang,
-        clips:    JSON.stringify(ordered)
+        clips:    clipIds
       });
 
       if (createRes.error) {
