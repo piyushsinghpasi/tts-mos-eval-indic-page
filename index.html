@@ -343,11 +343,6 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzQbC_JSdby9cAg2IGFhkWwoUAWakBkHoc-17WoMgqmt5-vxucuGVecs4zyUk3DqVV_Ew/exec";
 const MANIFEST_URL = "https://piyushsinghpasi.github.io/tts-mos-eval-indic-page/manifest.json";
 const AB_MANIFEST_URL = "https://piyushsinghpasi.github.io/tts-mos-eval-indic-page/ab_manifest.json";
-<!-- 
-const CLIPS_PER_SYSTEM    = 10;
-const TOTAL_MOS_CLIPS     = 40;
-const TOTAL_AB_SETS       = 10;
-const AB_SETS_PER_LANG    = 10; -->
 
 const CLIPS_PER_SYSTEM    = 1;
 const TOTAL_MOS_CLIPS     = 4;
@@ -576,7 +571,7 @@ function renderClip(index) {
   document.getElementById("progressText").textContent = `Clip ${index+1} of ${TOTAL_MOS_CLIPS}`;
   document.getElementById("progressPct").textContent  = Math.round(rated/TOTAL_MOS_CLIPS*100) + "%";
   document.getElementById("progressFill").style.width = (rated/TOTAL_MOS_CLIPS*100) + "%";
-
+  updateOverallProgress();
   const audio = document.getElementById("audioPlayer");
   audio.src = clip.url;
   audio.load();
@@ -622,11 +617,35 @@ function selectScore(type, score) {
   }
 }
 
+function updateOverallProgress() {
+  const mosRated = Object.keys(ratings).filter(id => ratings[id].overall && ratings[id].naturalness).length;
+  const abRanked = Object.keys(abRankings).filter(id => Object.keys(abRankings[id]).length === 4).length;
+  const total    = TOTAL_MOS_CLIPS + TOTAL_AB_SETS;
+  const done     = mosRated + abRanked;
+  const pct      = Math.round(done / total * 100);
+
+  // MOS screen progress
+  document.getElementById("progressText").textContent = `Clip ${currentIndex+1} of ${TOTAL_MOS_CLIPS} · Overall ${done}/${total}`;
+  document.getElementById("progressPct").textContent  = pct + "%";
+  document.getElementById("progressFill").style.width = pct + "%";
+}
+
+function updateABProgress() {
+  const mosRated = Object.keys(ratings).filter(id => ratings[id].overall && ratings[id].naturalness).length;
+  const abRanked = Object.keys(abRankings).filter(id => Object.keys(abRankings[id]).length === 4).length;
+  const total    = TOTAL_MOS_CLIPS + TOTAL_AB_SETS;
+  const done     = mosRated + abRanked;
+  const pct      = Math.round(done / total * 100);
+
+  document.getElementById("abProgressText").textContent = `Set ${abIndex+1} of ${TOTAL_AB_SETS} · Overall ${done}/${total}`;
+  document.getElementById("abProgressPct").textContent  = pct + "%";
+  document.getElementById("abProgressFill").style.width = pct + "%";
+}
+
 function goNext() {
   const clip = assignedClips[currentIndex];
   const r    = ratings[clip.id] || {};
   if (!r.overall || !r.naturalness) {
-    // Nudge whichever row is missing
     const rowId = !r.overall ? "overallRow" : "naturalnessRow";
     const row   = document.getElementById(rowId);
     row.style.outline = "2px solid #f87171";
@@ -663,6 +682,7 @@ function renderABSet(index) {
   const ranked = Object.keys(abRankings).length;
   document.getElementById("abProgressPct").textContent  = Math.round(ranked/TOTAL_AB_SETS*100) + "%";
   document.getElementById("abProgressFill").style.width = (ranked/TOTAL_AB_SETS*100) + "%";
+  updateABProgress();
 
   document.getElementById("abBtnPrev").disabled = index === 0;
   document.getElementById("abBtnNext").textContent = index === TOTAL_AB_SETS-1 ? "Finish →" : "Next →";
