@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TTS Naturalness Evaluation</title>
+<style>
+  /* ── reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #f7f6f3;
+    --surface:  #ffffff;
+    --border:   #e2e0d9;
+    --text:     #1a1916;
+    --muted:    #6b6963;
+    --accent:   #2563eb;
+    --accent-light: #eff4ff;
+    --danger:   #dc2626;
+    --radius:   10px;
+    --shadow:   0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .app { width: 100%; max-width: 600px; }
+
+  /* ── header ── */
+  header { text-align: center; margin-bottom: 2.5rem; }
+  header h1 { font-size: 1.5rem; font-weight: normal; letter-spacing: -.01em; color: var(--text); }
+  header p  { margin-top: .4rem; font-size: .875rem; color: var(--muted); font-family: sans-serif; }
+
+  /* ── card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+  }
+
+  /* ── form ── */
+  .field { margin-bottom: 1.25rem; }
+  label { display: block; font-size: .8rem; font-family: sans-serif; color: var(--muted); margin-bottom: .35rem; letter-spacing: .04em; text-transform: uppercase; }
+  input, select {
+    width: 100%; padding: .65rem .85rem;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-size: .95rem;
+    font-family: sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color .15s;
+  }
+  input:focus, select:focus { border-color: var(--accent); background: #fff; }
+
+  /* ── buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+    padding: .65rem 1.4rem;
+    border-radius: 7px;
+    font-size: .9rem;
+    font-family: sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .15s, opacity .15s;
+    border: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--bg); }
+  .btn-ghost:disabled { opacity: .35; cursor: not-allowed; }
+  .btn-full { width: 100%; }
+
+  /* ── error / info ── */
+  .msg {
+    padding: .65rem .9rem;
+    border-radius: 7px;
+    font-size: .85rem;
+    font-family: sans-serif;
+    margin-bottom: 1rem;
+  }
+  .msg-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+  .msg-info  { background: var(--accent-light); color: var(--accent); border: 1px solid #bfdbfe; }
+
+  /* ── progress ── */
+  .progress-wrap { margin-bottom: 1.75rem; }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: .8rem; font-family: sans-serif; color: var(--muted);
+    margin-bottom: .5rem;
+  }
+  .progress-bar-bg {
+    width: 100%; height: 5px; background: var(--border);
+    border-radius: 99px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; background: var(--accent);
+    border-radius: 99px;
+    transition: width .3s ease;
+  }
+
+  /* ── audio player ── */
+  .player-wrap {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+    text-align: center;
+  }
+  .player-wrap audio {
+    width: 100%;
+    margin-bottom: .5rem;
+    accent-color: var(--accent);
+  }
+  .play-count {
+    font-size: .78rem; font-family: sans-serif; color: var(--muted);
+  }
+
+  /* ── rating ── */
+  .rating-label {
+    font-size: .8rem; font-family: sans-serif; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .04em;
+    margin-bottom: .75rem;
+  }
+  .rating-row {
+    display: flex; gap: .6rem; justify-content: center;
+    margin-bottom: .5rem;
+  }
+  .rating-btn {
+    width: 52px; height: 52px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 1.1rem;
+    font-family: sans-serif;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .12s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .rating-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .rating-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .rating-desc {
+    display: flex; justify-content: space-between;
+    font-size: .75rem; font-family: sans-serif; color: var(--muted);
+    padding: 0 2px;
+  }
+
+  /* ── navigation ── */
+  .nav-row {
+    display: flex; gap: .75rem; margin-top: 1.75rem;
+  }
+  .nav-row .btn-ghost { flex: 1; }
+  .nav-row .btn-primary { flex: 2; }
+
+  /* ── completion ── */
+  .completion { text-align: center; padding: 1rem 0; }
+  .completion h2 { font-size: 1.3rem; font-weight: normal; margin-bottom: .75rem; }
+  .completion p  { font-size: .9rem; font-family: sans-serif; color: var(--muted); line-height: 1.6; }
+
+  /* ── loading overlay ── */
+  .loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(247,246,243,.85);
+    display: flex; align-items: center; justify-content: center;
+    font-family: sans-serif; font-size: .9rem; color: var(--muted);
+    z-index: 99;
+  }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    margin-right: .75rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hidden { display: none !important; }
+
+  /* keyboard hint */
+  .kbd-hint {
+    text-align: center;
+    font-size: .75rem;
+    font-family: sans-serif;
+    color: var(--muted);
+    margin-top: 1rem;
+    opacity: .7;
+  }
+  kbd {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: .75rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div class="loading-overlay hidden" id="loadingOverlay">
+  <div class="spinner"></div>
+  <span id="loadingMsg">Loading…</span>
+</div>
+
+<div class="app">
+  <header>
+    <h1>TTS Naturalness Evaluation</h1>
+    <p>Listen to each audio clip and rate its naturalness.</p>
+  </header>
+
+  <!-- ── SCREEN 1: Registration / Login ── -->
+  <div id="screenLogin" class="card">
+    <div id="loginError" class="msg msg-error hidden"></div>
+    <div id="loginInfo"  class="msg msg-info  hidden"></div>
+
+    <div class="field">
+      <label for="inputName">Your name</label>
+      <input type="text" id="inputName" placeholder="e.g. Priya Sharma" autocomplete="name" />
+    </div>
+    <div class="field">
+      <label for="inputEmail">Email address</label>
+      <input type="email" id="inputEmail" placeholder="you@example.com" autocomplete="email" />
+    </div>
+    <div class="field">
+      <label for="inputLang">Language to evaluate</label>
+      <select id="inputLang">
+        <option value="">— select a language —</option>
+        <option value="hi">Hindi</option>
+        <option value="pa">Punjabi</option>
+        <option value="gu">Gujarati</option>
+        <option value="ta">Tamil</option>
+        <option value="te">Telugu</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-full" id="btnStart" onclick="handleStart()">
+      Start / Resume →
+    </button>
+  </div>
+
+  <!-- ── SCREEN 2: Rating ── -->
+  <div id="screenRate" class="hidden">
+
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="progressText">Clip 1 of 40</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="player-wrap">
+        <audio id="audioPlayer" controls controlsList="nodownload" preload="auto"></audio>
+        <div class="play-count" id="playCount">Plays: 0</div>
+      </div>
+
+      <div class="rating-label">Naturalness rating</div>
+      <div class="rating-row" id="ratingRow">
+        <button class="rating-btn" data-score="1" onclick="selectScore(1)">1</button>
+        <button class="rating-btn" data-score="2" onclick="selectScore(2)">2</button>
+        <button class="rating-btn" data-score="3" onclick="selectScore(3)">3</button>
+        <button class="rating-btn" data-score="4" onclick="selectScore(4)">4</button>
+        <button class="rating-btn" data-score="5" onclick="selectScore(5)">5</button>
+      </div>
+      <div class="rating-desc">
+        <span>Bad</span>
+        <span>Poor</span>
+        <span>Fair</span>
+        <span>Good</span>
+        <span>Excellent</span>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" id="btnPrev" onclick="goTo(currentIndex - 1)">← Back</button>
+        <button class="btn btn-primary" id="btnNext" onclick="goNext()">Next →</button>
+      </div>
+    </div>
+
+    <div class="kbd-hint">
+      Keyboard: <kbd>1</kbd>–<kbd>5</kbd> to rate &nbsp;·&nbsp; <kbd>Enter</kbd> to advance &nbsp;·&nbsp; <kbd>Space</kbd> play/pause
+    </div>
+  </div>
+
+  <!-- ── SCREEN 3: Done ── -->
+  <div id="screenDone" class="card hidden">
+    <div class="completion">
+      <h2>Evaluation complete.</h2>
+      <p>Thank you for rating all 40 clips.<br>Your responses have been saved.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+//  CONFIG — update these two values before deploying
+// ================================================================
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwq-u15u6WR8gV1FgzXzdHZe6lSTjXUuXWFoDWorwK50yW3fDtZdc4qhcsmt7xWlDa1Tw/exec";
+const MANIFEST_URL    = "https://huggingface.co/datasets/piyushsinghpasi/tts-mos-eval-indic/blob/main/manifest.json";
+// e.g. "https://huggingface.co/datasets/ORG/REPO/resolve/main/manifest.json"
+
+
+
+const CLIPS_PER_SYSTEM = 10;
+const TOTAL_CLIPS      = 40; // 4 systems × 10 clips each
+
+// ================================================================
+
+let userEmail    = "";
+let userName     = "";
+let userLang     = "";
+let assignedClips = [];   // ordered array of clip objects for this user
+let ratings      = {};    // { clipId: score }
+let currentIndex = 0;     // 0-based
+let playCounts   = {};    // { clipId: n }
+let fullManifest = [];
+
+// ── Utility ──────────────────────────────────────────────────────
+
+function showLoading(msg) {
+  document.getElementById("loadingMsg").textContent = msg || "Loading…";
+  document.getElementById("loadingOverlay").classList.remove("hidden");
+}
+function hideLoading() {
+  document.getElementById("loadingOverlay").classList.add("hidden");
+}
+function showScreen(id) {
+  ["screenLogin","screenRate","screenDone"].forEach(s =>
+    document.getElementById(s).classList.add("hidden")
+  );
+  document.getElementById(id).classList.remove("hidden");
+}
+function setLoginError(msg) {
+  const el = document.getElementById("loginError");
+  el.textContent = msg; el.classList.toggle("hidden", !msg);
+}
+function setLoginInfo(msg) {
+  const el = document.getElementById("loginInfo");
+  el.textContent = msg; el.classList.toggle("hidden", !msg);
+}
+
+// Fisher-Yates shuffle (returns new array)
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Seeded shuffle so same user always gets same order after assignment
+function seededShuffle(arr, seed) {
+  const a = [...arr];
+  let s = seed;
+  function rand() {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0x100000000;
+  }
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function emailToSeed(email) {
+  let h = 0;
+  for (let i = 0; i < email.length; i++) {
+    h = Math.imul(31, h) + email.charCodeAt(i) | 0;
+  }
+  return Math.abs(h);
+}
+
+// ── Apps Script calls ─────────────────────────────────────────────
+
+async function apiCall(params) {
+  const url = new URL(APPS_SCRIPT_URL);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString());
+  return res.json();
+}
+
+// ── Start / resume ───────────────────────────────────────────────
+
+async function handleStart() {
+  setLoginError(""); setLoginInfo("");
+  const name  = document.getElementById("inputName").value.trim();
+  const email = document.getElementById("inputEmail").value.trim().toLowerCase();
+  const lang  = document.getElementById("inputLang").value;
+
+  if (!name)  return setLoginError("Please enter your name.");
+  if (!email || !email.includes("@")) return setLoginError("Please enter a valid email.");
+  if (!lang)  return setLoginError("Please select a language.");
+
+  showLoading("Connecting…");
+  try {
+    // 1. Load manifest
+    if (!fullManifest.length) {
+      const mRes = await fetch(MANIFEST_URL);
+      fullManifest = await mRes.json();
+    }
+
+    // 2. Check if user exists
+    const userData = await apiCall({ action:"getUser", email, language: lang });
+
+    if (userData.found) {
+      // Validate name matches
+      if (userData.name.toLowerCase() !== name.toLowerCase()) {
+        hideLoading();
+        return setLoginError("Name doesn't match our records for this email and language. Please check and try again.");
+      }
+      // Resume
+      userName     = userData.name;
+      userEmail    = email;
+      userLang     = lang;
+      assignedClips = userData.clips;
+
+      // Load existing ratings
+      const rData = await apiCall({ action:"getRatings", email });
+      ratings = rData.ratings || {};
+
+      // Find resume index = first unrated clip
+      currentIndex = assignedClips.findIndex(c => ratings[c.id] === undefined);
+      if (currentIndex === -1) currentIndex = assignedClips.length; // all done
+
+      hideLoading();
+      setLoginInfo(`Welcome back, ${userName}! Resuming from clip ${Math.min(currentIndex+1, TOTAL_CLIPS)} of ${TOTAL_CLIPS}.`);
+      setTimeout(() => startRating(), 800);
+
+    } else {
+      // New user — sample clips
+      const langClips = fullManifest.filter(c => c.language === lang);
+      const systems   = [...new Set(langClips.map(c => c.system))];
+
+      let sampled = [];
+      for (const sys of systems) {
+        const sysClips = langClips.filter(c => c.system === sys);
+        const picked   = shuffle(sysClips).slice(0, CLIPS_PER_SYSTEM);
+        sampled = sampled.concat(picked);
+      }
+
+      // Shuffle across systems using seeded shuffle so order is reproducible
+      const seed    = emailToSeed(email + lang);
+      const ordered = seededShuffle(sampled, seed);
+
+      // Save user
+      const createRes = await apiCall({
+        action:   "createUser",
+        name,
+        email,
+        language: lang,
+        clips:    JSON.stringify(ordered)
+      });
+
+      if (createRes.error) {
+        hideLoading();
+        return setLoginError(createRes.error);
+      }
+
+      userName      = name;
+      userEmail     = email;
+      userLang      = lang;
+      assignedClips = ordered;
+      ratings       = {};
+      currentIndex  = 0;
+
+      hideLoading();
+      startRating();
+    }
+  } catch (err) {
+    hideLoading();
+    setLoginError("Could not connect. Please check your internet and try again. (" + err.message + ")");
+  }
+}
+
+// ── Rating screen ────────────────────────────────────────────────
+
+function startRating() {
+  if (currentIndex >= TOTAL_CLIPS) {
+    showScreen("screenDone");
+    return;
+  }
+  showScreen("screenRate");
+  renderClip(currentIndex);
+}
+
+function renderClip(index) {
+  currentIndex = index;
+  const clip   = assignedClips[index];
+  const total  = TOTAL_CLIPS;
+
+  // Progress
+  const rated = Object.keys(ratings).length;
+  document.getElementById("progressText").textContent = `Clip ${index + 1} of ${total}`;
+  document.getElementById("progressPct").textContent  = Math.round(rated / total * 100) + "%";
+  document.getElementById("progressFill").style.width = (rated / total * 100) + "%";
+
+  // Audio
+  const audio = document.getElementById("audioPlayer");
+  audio.src = clip.url;
+  audio.load();
+  if (!playCounts[clip.id]) playCounts[clip.id] = 0;
+  document.getElementById("playCount").textContent = "Plays: " + playCounts[clip.id];
+  audio.onplay = () => {
+    playCounts[clip.id] = (playCounts[clip.id] || 0) + 1;
+    document.getElementById("playCount").textContent = "Plays: " + playCounts[clip.id];
+  };
+
+  // Restore rating if exists
+  const existingScore = ratings[clip.id];
+  document.querySelectorAll(".rating-btn").forEach(btn => {
+    btn.classList.toggle("selected", Number(btn.dataset.score) === existingScore);
+  });
+
+  // Prev button
+  document.getElementById("btnPrev").disabled = index === 0;
+
+  // Next button label
+  const btnNext = document.getElementById("btnNext");
+  btnNext.textContent = index === total - 1 ? "Finish ✓" : "Next →";
+}
+
+function selectScore(score) {
+  document.querySelectorAll(".rating-btn").forEach(btn => {
+    btn.classList.toggle("selected", Number(btn.dataset.score) === score);
+  });
+  const clip = assignedClips[currentIndex];
+  ratings[clip.id] = score;
+  // Auto-save (fire and forget)
+  apiCall({
+    action:   "saveRating",
+    email:    userEmail,
+    clipId:   clip.id,
+    system:   clip.system,
+    language: userLang,
+    score,
+    index:    currentIndex
+  });
+  // Update progress bar immediately
+  const rated = Object.keys(ratings).length;
+  document.getElementById("progressPct").textContent  = Math.round(rated / TOTAL_CLIPS * 100) + "%";
+  document.getElementById("progressFill").style.width = (rated / TOTAL_CLIPS * 100) + "%";
+}
+
+function goNext() {
+  const clip  = assignedClips[currentIndex];
+  if (!ratings[clip.id]) {
+    // Gentle visual nudge — briefly highlight the rating row
+    const row = document.getElementById("ratingRow");
+    row.style.outline = "2px solid #f87171";
+    row.style.borderRadius = "9px";
+    setTimeout(() => { row.style.outline = "none"; }, 700);
+    return;
+  }
+  if (currentIndex >= TOTAL_CLIPS - 1) {
+    showScreen("screenDone");
+  } else {
+    goTo(currentIndex + 1);
+  }
+}
+
+function goTo(index) {
+  if (index < 0 || index >= TOTAL_CLIPS) return;
+  // Pause audio
+  document.getElementById("audioPlayer").pause();
+  renderClip(index);
+}
+
+// ── Keyboard shortcuts ────────────────────────────────────────────
+
+document.addEventListener("keydown", e => {
+  if (document.getElementById("screenRate").classList.contains("hidden")) return;
+  const audio = document.getElementById("audioPlayer");
+  if (e.key === " " && document.activeElement.tagName !== "BUTTON") {
+    e.preventDefault();
+    audio.paused ? audio.play() : audio.pause();
+  }
+  if (["1","2","3","4","5"].includes(e.key)) {
+    selectScore(Number(e.key));
+  }
+  if (e.key === "Enter") {
+    goNext();
+  }
+  if (e.key === "ArrowLeft") {
+    goTo(currentIndex - 1);
+  }
+});
+</script>
+</body>
+</html>
