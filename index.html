@@ -553,7 +553,7 @@ function renderABPage(index) {
   document.querySelectorAll("#abRateRow2 .pair-rating-btn").forEach(btn=>btn.classList.toggle("selected",Number(btn.dataset.score)===existing.score2));
 
   document.getElementById("abBtnPrev").disabled=index===0;
-  document.getElementById("abBtnNext").textContent=index===TOTAL_AB_PAGES-1?"Finish ✓":"Next →";
+  document.getElementById("abBtnNext").textContent=index===TOTAL_AB_PAGES-1?"Finish ✓ (cannot go back)":"Next →";
   updateProgress();
 }
 
