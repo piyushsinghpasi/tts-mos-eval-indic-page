@@ -56,11 +56,20 @@
   .rating-block:last-of-type { margin-bottom: 0; }
   .rating-title { font-size: .85rem; font-family: sans-serif; font-weight: 600; color: var(--text); margin-bottom: .3rem; }
   .rating-desc-text { font-size: .78rem; font-family: sans-serif; color: var(--muted); margin-bottom: .75rem; line-height: 1.5; }
-  .rating-row { display: flex; gap: .5rem; justify-content: center; margin-bottom: .4rem; }
+  .rating-row { display: flex; gap: .4rem; justify-content: center; margin-bottom: .4rem; }
+  .rating-col { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+  .rating-col-label { font-size: .65rem; font-family: sans-serif; color: var(--muted); text-align: center; width: 52px; line-height: 1.2; }
   .rating-btn { width: 52px; height: 52px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg); font-size: 1.05rem; font-family: sans-serif; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .12s; display: flex; align-items: center; justify-content: center; }
   .rating-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
   .rating-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .rating-scale-labels { display: flex; justify-content: space-between; font-size: .72rem; font-family: sans-serif; color: var(--muted); padding: 0 2px; }
+  .pair-rating-btn { width: 52px; height: 52px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg); font-size: 1.05rem; font-family: sans-serif; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .12s; display: flex; align-items: center; justify-content: center; }
+  .pair-rating-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .pair-rating-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+  @media (max-width: 400px) {
+    .rating-btn, .pair-rating-btn { width: 44px; height: 44px; font-size: .95rem; }
+    .rating-col-label { width: 44px; font-size: .6rem; }
+    .rating-row { gap: .3rem; }
+  }
   .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
   .nav-row { display: flex; gap: .75rem; margin-top: 1.5rem; }
   .nav-row .btn-ghost   { flex: 1; }
@@ -83,14 +92,8 @@
   .pair-divider-label::before, .pair-divider-label::after {
     content: ""; flex: 1; height: 1px; background: var(--border);
   }
-  .pair-rate-section { display: flex; flex-direction: column; gap: 1.1rem; }
-  .pair-rate-row { display: flex; align-items: center; gap: .75rem; }
-  .pair-rate-label { font-size: .82rem; font-family: sans-serif; font-weight: 600; color: var(--text); min-width: 60px; }
-  .pair-rating-row { display: flex; gap: .4rem; }
-  .pair-rating-btn { width: 46px; height: 46px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); font-size: 1rem; font-family: sans-serif; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .12s; display: flex; align-items: center; justify-content: center; }
-  .pair-rating-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-  .pair-rating-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .pair-scale-labels { display: flex; justify-content: space-between; font-size: .68rem; font-family: sans-serif; color: var(--muted); padding: 0 2px; margin-top: .25rem; }
+  .pair-rate-section { display: flex; flex-direction: column; gap: 1.25rem; }
+  .pair-rate-label { font-size: .82rem; font-family: sans-serif; font-weight: 600; color: var(--text); }
 
   /* loading */
   .loading-overlay { position: fixed; inset: 0; background: rgba(247,246,243,.88); display: flex; align-items: center; justify-content: center; font-family: sans-serif; font-size: .9rem; color: var(--muted); z-index: 99; }
@@ -159,26 +162,24 @@
         <div class="rating-title">Overall Quality</div>
         <div class="rating-desc-text">Rate the <strong>overall quality</strong> of this speech — considering pronunciation accuracy, voice quality, clarity, and how natural it sounds as a complete utterance.</div>
         <div class="rating-row" id="overallRow">
-          <button class="rating-btn" data-score="1" onclick="selectScore('overall',1)">1</button>
-          <button class="rating-btn" data-score="2" onclick="selectScore('overall',2)">2</button>
-          <button class="rating-btn" data-score="3" onclick="selectScore('overall',3)">3</button>
-          <button class="rating-btn" data-score="4" onclick="selectScore('overall',4)">4</button>
-          <button class="rating-btn" data-score="5" onclick="selectScore('overall',5)">5</button>
+          <div class="rating-col"><button class="rating-btn" data-score="1" onclick="selectScore('overall',1)">1</button><span class="rating-col-label">Bad</span></div>
+          <div class="rating-col"><button class="rating-btn" data-score="2" onclick="selectScore('overall',2)">2</button><span class="rating-col-label">Poor</span></div>
+          <div class="rating-col"><button class="rating-btn" data-score="3" onclick="selectScore('overall',3)">3</button><span class="rating-col-label">Fair</span></div>
+          <div class="rating-col"><button class="rating-btn" data-score="4" onclick="selectScore('overall',4)">4</button><span class="rating-col-label">Good</span></div>
+          <div class="rating-col"><button class="rating-btn" data-score="5" onclick="selectScore('overall',5)">5</button><span class="rating-col-label">Excellent</span></div>
         </div>
-        <div class="rating-scale-labels"><span>Bad</span><span>Poor</span><span>Fair</span><span>Good</span><span>Excellent</span></div>
       </div>
       <hr class="divider" />
       <div class="rating-block">
         <div class="rating-title">Naturalness</div>
         <div class="rating-desc-text">Rate only the <strong>naturalness of delivery</strong> — ignore what is being said. Focus on rhythm, prosody, intonation, and whether it sounds human-like or robotic.</div>
         <div class="rating-row" id="naturalnessRow">
-          <button class="rating-btn" data-score="1" onclick="selectScore('naturalness',1)">1</button>
-          <button class="rating-btn" data-score="2" onclick="selectScore('naturalness',2)">2</button>
-          <button class="rating-btn" data-score="3" onclick="selectScore('naturalness',3)">3</button>
-          <button class="rating-btn" data-score="4" onclick="selectScore('naturalness',4)">4</button>
-          <button class="rating-btn" data-score="5" onclick="selectScore('naturalness',5)">5</button>
+          <div class="rating-col"><button class="rating-btn" data-score="1" onclick="selectScore('naturalness',1)">1</button><span class="rating-col-label">Bad</span></div>
+          <div class="rating-col"><button class="rating-btn" data-score="2" onclick="selectScore('naturalness',2)">2</button><span class="rating-col-label">Poor</span></div>
+          <div class="rating-col"><button class="rating-btn" data-score="3" onclick="selectScore('naturalness',3)">3</button><span class="rating-col-label">Fair</span></div>
+          <div class="rating-col"><button class="rating-btn" data-score="4" onclick="selectScore('naturalness',4)">4</button><span class="rating-col-label">Good</span></div>
+          <div class="rating-col"><button class="rating-btn" data-score="5" onclick="selectScore('naturalness',5)">5</button><span class="rating-col-label">Excellent</span></div>
         </div>
-        <div class="rating-scale-labels"><span>Bad</span><span>Poor</span><span>Fair</span><span>Good</span><span>Excellent</span></div>
       </div>
       <div class="nav-row">
         <button class="btn btn-ghost" id="btnPrev" onclick="goTo(currentIndex-1)">← Back</button>
@@ -230,30 +231,24 @@
       <!-- Two rating rows -->
       <div class="pair-rate-section">
         <div>
-          <div class="pair-rate-row">
-            <div class="pair-rate-label">Audio 1</div>
-            <div class="pair-rating-row" id="abRateRow1">
-              <button class="pair-rating-btn" data-score="1" onclick="selectPairScore(1,1)">1</button>
-              <button class="pair-rating-btn" data-score="2" onclick="selectPairScore(1,2)">2</button>
-              <button class="pair-rating-btn" data-score="3" onclick="selectPairScore(1,3)">3</button>
-              <button class="pair-rating-btn" data-score="4" onclick="selectPairScore(1,4)">4</button>
-              <button class="pair-rating-btn" data-score="5" onclick="selectPairScore(1,5)">5</button>
-            </div>
+          <div class="pair-rate-label" style="margin-bottom:.5rem;">Audio 1</div>
+          <div class="rating-row" id="abRateRow1">
+            <div class="rating-col"><button class="pair-rating-btn" data-score="1" onclick="selectPairScore(1,1)">1</button><span class="rating-col-label">Bad</span></div>
+            <div class="rating-col"><button class="pair-rating-btn" data-score="2" onclick="selectPairScore(1,2)">2</button><span class="rating-col-label">Poor</span></div>
+            <div class="rating-col"><button class="pair-rating-btn" data-score="3" onclick="selectPairScore(1,3)">3</button><span class="rating-col-label">Fair</span></div>
+            <div class="rating-col"><button class="pair-rating-btn" data-score="4" onclick="selectPairScore(1,4)">4</button><span class="rating-col-label">Good</span></div>
+            <div class="rating-col"><button class="pair-rating-btn" data-score="5" onclick="selectPairScore(1,5)">5</button><span class="rating-col-label">Excellent</span></div>
           </div>
-          <div class="pair-scale-labels" style="padding-left:68px;"><span>Bad</span><span>Poor</span><span>Fair</span><span>Good</span><span>Excellent</span></div>
         </div>
         <div>
-          <div class="pair-rate-row">
-            <div class="pair-rate-label">Audio 2</div>
-            <div class="pair-rating-row" id="abRateRow2">
-              <button class="pair-rating-btn" data-score="1" onclick="selectPairScore(2,1)">1</button>
-              <button class="pair-rating-btn" data-score="2" onclick="selectPairScore(2,2)">2</button>
-              <button class="pair-rating-btn" data-score="3" onclick="selectPairScore(2,3)">3</button>
-              <button class="pair-rating-btn" data-score="4" onclick="selectPairScore(2,4)">4</button>
-              <button class="pair-rating-btn" data-score="5" onclick="selectPairScore(2,5)">5</button>
-            </div>
+          <div class="pair-rate-label" style="margin-bottom:.5rem;">Audio 2</div>
+          <div class="rating-row" id="abRateRow2">
+            <div class="rating-col"><button class="pair-rating-btn" data-score="1" onclick="selectPairScore(2,1)">1</button><span class="rating-col-label">Bad</span></div>
+            <div class="rating-col"><button class="pair-rating-btn" data-score="2" onclick="selectPairScore(2,2)">2</button><span class="rating-col-label">Poor</span></div>
+            <div class="rating-col"><button class="pair-rating-btn" data-score="3" onclick="selectPairScore(2,3)">3</button><span class="rating-col-label">Fair</span></div>
+            <div class="rating-col"><button class="pair-rating-btn" data-score="4" onclick="selectPairScore(2,4)">4</button><span class="rating-col-label">Good</span></div>
+            <div class="rating-col"><button class="pair-rating-btn" data-score="5" onclick="selectPairScore(2,5)">5</button><span class="rating-col-label">Excellent</span></div>
           </div>
-          <div class="pair-scale-labels" style="padding-left:68px;"><span>Bad</span><span>Poor</span><span>Fair</span><span>Good</span><span>Excellent</span></div>
         </div>
       </div>
 
