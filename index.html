@@ -403,8 +403,10 @@ async function handleStart() {
       fullManifest.forEach(c=>manifestMap[c.id]=c);
       assignedClips = userData.clips.split(",").map(id=>manifestMap[id]).filter(Boolean);
 
-      // Reconstruct AB pages
-      assignedABPages = JSON.parse(userData.abPages);
+      // Reconstruct AB pages from stored seed
+      const abSeed = Number(userData.abPages);
+      const langSets = fullABManifest.filter(s=>s.language===lang);
+      assignedABPages = buildABPages(langSets, abSeed);
 
       const rData  = await apiCall({ action:"getRatings",    email });
       const rkData = await apiCall({ action:"getPairRatings", email });
@@ -437,10 +439,11 @@ async function handleStart() {
       assignedABPages = buildABPages(langSets, seed);
 
       const clipIds = assignedClips.map(c=>c.id).join(",");
+      const abSeed  = emailToSeed(email+lang); // store just the seed for reconstruction
 
       const createRes = await apiCall({
         action:"createUser", name, email, language:lang,
-        clips:clipIds, abPages:JSON.stringify(assignedABPages)
+        clips:clipIds, abPages:String(abSeed)
       });
       if (createRes.error) { hideLoading(); return setLoginError(createRes.error); }
 
