@@ -160,7 +160,7 @@
       </div>
       <div class="rating-block">
         <div class="rating-title">Overall Quality</div>
-        <div class="rating-desc-text">Rate the <strong>overall quality</strong> of this speech — considering pronunciation accuracy, voice quality, clarity, and how natural it sounds as a complete utterance.</div>
+        <div class="rating-desc-text">Rate the <strong>overall quality</strong> of this speech — considering pronunciation, voice clarity, and how natural and pleasant it sounds overall.</div>
         <div class="rating-row" id="overallRow">
           <div class="rating-col"><button class="rating-btn" data-score="1" onclick="selectScore('overall',1)">1</button><span class="rating-col-label">Bad</span></div>
           <div class="rating-col"><button class="rating-btn" data-score="2" onclick="selectScore('overall',2)">2</button><span class="rating-col-label">Poor</span></div>
@@ -172,7 +172,7 @@
       <hr class="divider" />
       <div class="rating-block">
         <div class="rating-title">Naturalness</div>
-        <div class="rating-desc-text">Rate only the <strong>naturalness of delivery</strong> — ignore what is being said. Focus on rhythm, prosody, intonation, and whether it sounds human-like or robotic.</div>
+        <div class="rating-desc-text">Rate how <strong>natural</strong> the speech sounds — ignore the meaning of the words. Focus on the flow, pauses, tone, and whether it sounds human-like or robotic.</div>
         <div class="rating-row" id="naturalnessRow">
           <div class="rating-col"><button class="rating-btn" data-score="1" onclick="selectScore('naturalness',1)">1</button><span class="rating-col-label">Bad</span></div>
           <div class="rating-col"><button class="rating-btn" data-score="2" onclick="selectScore('naturalness',2)">2</button><span class="rating-col-label">Poor</span></div>
@@ -226,7 +226,10 @@
         </div>
       </div>
 
-      <div class="pair-divider-label">Rate after listening to both</div>
+      <div class="pair-divider-label">Rate after listening and Comparing both the audios</div>
+      <div class="rating-desc-text" style="text-align:center; margin-top:-0.5rem; margin-bottom:1.25rem;">
+        Rate overall quality — considering pronunciation, clarity, and how natural the speech sounds overall.
+      </div>
 
       <!-- Two rating rows -->
       <div class="pair-rate-section">
@@ -496,7 +499,7 @@ function renderClip(index) {
   document.querySelectorAll("#overallRow .rating-btn").forEach(btn=>btn.classList.toggle("selected",Number(btn.dataset.score)===existing.overall));
   document.querySelectorAll("#naturalnessRow .rating-btn").forEach(btn=>btn.classList.toggle("selected",Number(btn.dataset.score)===existing.naturalness));
   document.getElementById("btnPrev").disabled=index===0;
-  document.getElementById("btnNext").textContent=index===TOTAL_MOS_CLIPS-1?"Finish MOS ✓":"Next →";
+  document.getElementById("btnNext").textContent=index===TOTAL_MOS_CLIPS-1?"Finish (cannot go back) →":"Next →";
   updateProgress();
 }
 
